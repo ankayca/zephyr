@@ -400,6 +400,11 @@ static void broadcast_code_cb(struct bt_conn *conn,
 {
 	printk("Broadcast code received for %p\n", recv_state);
 
+	if (memcmp(broadcast_code, BROADCAST_CODE, sizeof(BROADCAST_CODE)) != 0) {
+		FAIL("Failed to receive correct broadcast code\n");
+		return;
+	}
+
 	SET_FLAG(flag_broadcast_code);
 }
 
@@ -748,8 +753,6 @@ static void init(void)
 		for (size_t i = 0U; i < ARRAY_SIZE(unicast_streams); i++) {
 			bt_cap_stream_ops_register(&unicast_streams[i], &unicast_stream_ops);
 		}
-
-		test_start_adv();
 	}
 
 	if (IS_ENABLED(CONFIG_BT_BAP_BROADCAST_SINK)) {
@@ -868,6 +871,8 @@ static void test_cap_acceptor_unicast(void)
 {
 	init();
 
+	test_start_adv();
+
 	auto_start_sink_streams = true;
 
 	/* TODO: wait for audio stream to pass */
@@ -880,6 +885,8 @@ static void test_cap_acceptor_unicast(void)
 static void test_cap_acceptor_unicast_timeout(void)
 {
 	init();
+
+	test_start_adv();
 
 	auto_start_sink_streams = false; /* Cause unicast_audio_start timeout */
 
@@ -994,6 +1001,12 @@ static void base_wait_for_metadata_update(void)
 	backchannel_sync_send_all(); /* let others know we have received a metadata update */
 }
 
+static void wait_for_broadcast_code(void)
+{
+	printk("Waiting for broadcast code\n");
+	WAIT_FOR_FLAG(flag_broadcast_code);
+}
+
 static void wait_for_streams_stop(int stream_count)
 {
 	/* The order of PA sync lost and BIG Sync lost is irrelevant
@@ -1035,6 +1048,8 @@ static void test_cap_acceptor_broadcast_reception(void)
 
 	init();
 
+	test_start_adv();
+
 	WAIT_FOR_FLAG(flag_pa_request);
 	WAIT_FOR_FLAG(flag_bis_sync_requested);
 
@@ -1042,6 +1057,7 @@ static void test_cap_acceptor_broadcast_reception(void)
 
 	create_and_sync_sink(bap_streams, &stream_count);
 
+	wait_for_broadcast_code();
 	sink_wait_for_data();
 
 	/* Since we are re-using the BAP broadcast source test
@@ -1071,6 +1087,8 @@ static void test_cap_acceptor_broadcast_reception(void)
 static void test_cap_acceptor_capture_and_render(void)
 {
 	init();
+
+	test_start_adv();
 
 	WAIT_FOR_FLAG(flag_connected);
 

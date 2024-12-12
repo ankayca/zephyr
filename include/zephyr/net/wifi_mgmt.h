@@ -540,6 +540,8 @@ struct wifi_connect_req_params {
 	uint8_t key2_passwd_length;
 	/** suiteb or suiteb-192 */
 	uint8_t suiteb_type;
+	/** TLS cipher */
+	uint8_t TLS_cipher;
 	/** eap version */
 	int eap_ver;
 	/** Identity for EAP */
@@ -566,6 +568,8 @@ struct wifi_connect_req_params {
 	 * 2: clear SSID, but keep the original length and ignore probe request for broadcast SSID
 	 */
 	uint8_t ignore_broadcast_ssid;
+	/** Parameter used for frequency band */
+	enum wifi_frequency_bandwidths bandwidth;
 };
 
 /** @brief Wi-Fi connect result codes. To be overlaid on top of \ref wifi_status
@@ -976,6 +980,7 @@ struct wifi_channel_info {
 
 /** @cond INTERNAL_HIDDEN */
 #define WIFI_AP_STA_MAX_INACTIVITY (LONG_MAX - 1)
+#define WIFI_AP_IEEE_80211_CAPAB_MAX_LEN 64
 /** @endcond */
 
 /** @brief Wi-Fi AP configuration parameter */
@@ -986,6 +991,14 @@ struct wifi_ap_config_params {
 	uint32_t max_inactivity;
 	/** Parameter used for setting maximum number of stations */
 	uint32_t max_num_sta;
+	/** Parameter used for frequency band */
+	enum wifi_frequency_bandwidths bandwidth;
+#if defined(CONFIG_WIFI_NM_HOSTAPD_AP)
+	/** Parameter used for setting HT capabilities */
+	char ht_capab[WIFI_AP_IEEE_80211_CAPAB_MAX_LEN + 1];
+	/** Parameter used for setting VHT capabilities */
+	char vht_capab[WIFI_AP_IEEE_80211_CAPAB_MAX_LEN + 1];
+#endif
 };
 
 #ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT_DPP

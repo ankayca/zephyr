@@ -3654,8 +3654,8 @@ static bool le_sc_oob_data_rsp_check(struct bt_smp *smp)
 	return ((rsp->oob_flag & BT_SMP_OOB_DATA_MASK) == BT_SMP_OOB_PRESENT);
 }
 
-static void le_sc_oob_config_set(struct bt_smp *smp,
-				 struct bt_conn_oob_info *info)
+__maybe_unused static void le_sc_oob_config_set(struct bt_smp *smp,
+						struct bt_conn_oob_info *info)
 {
 	bool req_oob_present = le_sc_oob_data_req_check(smp);
 	bool rsp_oob_present = le_sc_oob_data_rsp_check(smp);
@@ -4184,7 +4184,7 @@ static uint8_t smp_security_request(struct bt_smp *smp, struct net_buf *buf)
 }
 #endif /* CONFIG_BT_CENTRAL */
 
-static uint8_t generate_dhkey(struct bt_smp *smp)
+__maybe_unused static uint8_t generate_dhkey(struct bt_smp *smp)
 {
 	if (IS_ENABLED(CONFIG_BT_SMP_OOB_LEGACY_PAIR_ONLY)) {
 		return BT_SMP_ERR_UNSPECIFIED;
@@ -4198,7 +4198,7 @@ static uint8_t generate_dhkey(struct bt_smp *smp)
 	return 0;
 }
 
-static uint8_t display_passkey(struct bt_smp *smp)
+__maybe_unused static uint8_t display_passkey(struct bt_smp *smp)
 {
 	struct bt_conn *conn = smp->chan.chan.conn;
 	const struct bt_conn_auth_cb *smp_auth_cb = latch_auth_cb(smp);
@@ -4311,6 +4311,9 @@ static uint8_t smp_public_key(struct bt_smp *smp, struct net_buf *buf)
 		if (!update_debug_keys_check(smp)) {
 			return BT_SMP_ERR_AUTH_REQUIREMENTS;
 		}
+	} else if (!bt_pub_key_is_valid(smp->pkey)) {
+		LOG_WRN("Received invalid public key");
+		return BT_SMP_ERR_INVALID_PARAMS;
 	}
 
 	if (IS_ENABLED(CONFIG_BT_CENTRAL) &&
